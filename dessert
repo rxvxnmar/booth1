@@ -1,187 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carnival MBTI Game - Text/Image Version</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background-color: #fef9f2;
-    overflow-x: hidden;
-  }
-  .question, .result {
-    display: none;
-    margin-top: 50px;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-  }
-  .active {
-    display: block;
-    opacity: 1;
-  }
-  .question p {
-    font-size: 1.5em;
-    max-width: 700px;
-    margin: auto;
-  }
-  .question img {
-    max-width: 80%;
-    height: auto;
-    border-radius: 10px;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-  }
-  button {
-    padding: 15px 35px;
-    margin: 15px;
-    font-size: 1.1em;
-    cursor: pointer;
-    border-radius: 10px;
-    border: none;
-    background-color: #ffcc33;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-    transition: transform 0.2s;
-  }
-  button:hover {
-    transform: scale(1.1);
-  }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <meta charset="UTF-8">
+  <title>MBTI Carnival Shooting Game</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #fef9e7; }
+    .screen { display: none; margin-top: 50px; }
+    .active { display: block; }
+    button { margin: 10px; padding: 15px 25px; font-size: 18px; border-radius: 8px; cursor: pointer; }
+    #resultScreen { font-size: 24px; font-weight: bold; margin-top: 40px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
+  <h1>MBTI Carnival Game 🎯</h1>
+  
+  <div id="questionScreen"></div>
+  
+  <div id="answerButtons" class="screen">
+    <button onclick="answer(1)">1. Strongly Agree</button>
+    <button onclick="answer(2)">2. Agree</button>
+    <button onclick="answer(3)">3. Disagree</button>
+    <button onclick="answer(4)">4. Strongly Disagree</button>
+  </div>
+  
+  <div id="resultScreen" class="screen">
+    <p id="resultText"></p>
+    <p>Press "H" to reset the game.</p>
+  </div>
 
-<h1>Carnival MBTI Game - Text/Image Version</h1>
+  <script>
+    // --- Question Setup ---
+    const questions = [
+      { text: "I enjoy social gatherings and feel energized being around many people.", letters: ["E","I"] },
+      { text: "I prefer to focus on facts, details, and practical information rather than ideas or theories.", letters: ["S","N"] },
+      { text: "When making decisions, I rely more on objective logic than personal feelings or values.", letters: ["T","F"] },
+      { text: "I like to have a clear plan and structure rather than being spontaneous and flexible.", letters: ["J","P"] }
+    ];
 
-<!-- Questions will be generated dynamically here -->
-<div id="questionContainer"></div>
+    let currentQuestion = 0;
+    let scores = { I:0, E:0, S:0, N:0, T:0, F:0, J:0, P:0 };
 
-<!-- Answer buttons -->
-<div id="answerButtons" class="question">
-  <button onclick="recordAnswer(1)">Strongly Agree (1)</button>
-  <button onclick="recordAnswer(2)">Agree (2)</button>
-  <button onclick="recordAnswer(3)">Disagree (3)</button>
-  <button onclick="recordAnswer(4)">Strongly Disagree (4)</button>
-</div>
+    function showQuestion() {
+      if(currentQuestion < questions.length) {
+        document.getElementById("resultScreen").classList.remove("active");
+        document.getElementById("questionScreen").innerHTML = `<h2>Q${currentQuestion+1}: ${questions[currentQuestion].text}</h2>`;
+        document.getElementById("answerButtons").classList.add("active");
+      } else {
+        showResult();
+      }
+    }
 
-<!-- Result display -->
-<div id="resultScreen" class="result">
-  <h2 id="resultText"></h2>
-  <button onclick="resetGame()">Next Player</button>
-</div>
+    function answer(choice){
+      const q = questions[currentQuestion];
+      if(choice === 1){ scores[q.letters[0]] += 2; } // Strongly Agree
+      if(choice === 2){ scores[q.letters[0]] += 1; } // Agree
+      if(choice === 3){ scores[q.letters[1]] += 1; } // Disagree
+      if(choice === 4){ scores[q.letters[1]] += 2; } // Strongly Disagree
+      currentQuestion++;
+      showQuestion();
+    }
 
-<script>
-// Questions: either text or image
-const questionsData = [
-  { type: "text", content: "I enjoy social gatherings and feel energized being around many people.", letters: ["E","I"] },
-  { type: "image", content: "question2.jpg", letters: ["S","N"] }, // replace with your image file
-  { type: "text", content: "When making decisions, I rely more on objective logic than personal feelings or values.", letters: ["T","F"] },
-  { type: "image", content: "question4.jpg", letters: ["J","P"] } // replace with your image file
-];
+    function showResult(){
+      let finalType = "";
+      for(let q of questions){
+        finalType += scores[q.letters[0]] >= scores[q.letters[1]] ? q.letters[0] : q.letters[1];
+      }
+      document.getElementById("answerButtons").classList.remove("active");
+      document.getElementById("questionScreen").innerHTML = "";
+      document.getElementById("resultText").innerText = `Your MBTI Type: ${finalType}`;
+      document.getElementById("resultScreen").classList.add("active");
 
-const totalQuestions = questionsData.length;
-let currentQuestion = 0;
-const userAnswers = [];
-let scores = { "E":0,"I":0,"S":0,"N":0,"T":0,"F":0,"J":0,"P":0 };
+      // Confetti carnival effect 🎉
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
 
-const container = document.getElementById('questionContainer');
+    function resetGame(){
+      currentQuestion = 0;
+      scores = { I:0, E:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+      document.getElementById("resultScreen").classList.remove("active");
+      showQuestion();
+    }
 
-// Dynamically create question elements
-questionsData.forEach((q,i) => {
-  const div = document.createElement('div');
-  div.id = `question${i}`;
-  div.className = 'question';
-  if(q.type === "text"){
-    const p = document.createElement('p');
-    p.innerText = q.content;
-    div.appendChild(p);
-  } else if(q.type === "image"){
-    const img = document.createElement('img');
-    img.src = q.content;
-    img.alt = `Question ${i+1}`;
-    div.appendChild(img);
-  }
-  container.appendChild(div);
-});
+    // Keyboard navigation
+    document.addEventListener("keydown", function(event){
+      if(event.key === "ArrowRight" && currentQuestion < questions.length){
+        // move forward only if a question is showing
+        showQuestion();
+      }
+      if(event.key === "ArrowLeft" && currentQuestion > 0){
+        currentQuestion--;
+        showQuestion();
+      }
+      if(event.key.toLowerCase() === "h"){
+        resetGame();
+      }
+    });
 
-// Show the current question
-function showQuestion(index){
-  for(let i=0;i<totalQuestions;i++){
-    document.getElementById(`question${i}`).classList.remove('active');
-  }
-  document.getElementById('answerButtons').classList.remove('active');
-  if(index >=0 && index < totalQuestions){
-    document.getElementById(`question${index}`).classList.add('active');
-    document.getElementById('answerButtons').classList.add('active');
-  }
-}
-
-// Record answer and move to next
-function recordAnswer(choice){
-  userAnswers[currentQuestion] = choice;
-  const letters = questionsData[currentQuestion].letters;
-  switch(choice){
-    case 1: scores[letters[0]] += 2; break;
-    case 2: scores[letters[0]] += 1; break;
-    case 3: scores[letters[1]] += 1; break;
-    case 4: scores[letters[1]] += 2; break;
-  }
-
-  if(currentQuestion < totalQuestions-1){
-    currentQuestion++;
-    showQuestion(currentQuestion);
-  } else {
-    showResult();
-  }
-}
-
-// Show final MBTI type with confetti
-function showResult(){
-  let finalType = "";
-  questionsData.forEach(q => {
-    finalType += scores[q.letters[0]] >= scores[q.letters[1]] ? q.letters[0] : q.letters[1];
-  });
-  document.getElementById(`question${currentQuestion}`).classList.remove('active');
-  document.getElementById('answerButtons').classList.remove('active');
-  document.getElementById('resultText').innerText = `Final MBTI Type: ${finalType}`;
-  document.getElementById('resultScreen').classList.add('active');
-
-  confetti({ particleCount: 150, spread: 70, origin: {y:0.6} });
-}
-
-// Reset game
-function resetGame(){
-  scores = { "E":0,"I":0,"S":0,"N":0,"T":0,"F":0,"J":0,"P":0 };
-  userAnswers.length = 0;
-  currentQuestion = 0;
-  document.getElementById('resultScreen').classList.remove('active');
-  showQuestion(currentQuestion);
-}
-
-// Keyboard navigation
-document.addEventListener('keydown', e => {
-  if(e.key === "ArrowRight") nextQuestion();
-  else if(e.key === "ArrowLeft") prevQuestion();
-  else if(e.key.toLowerCase() === "h") resetGame();
-});
-
-function nextQuestion(){
-  if(currentQuestion < totalQuestions-1){
-    currentQuestion++;
-    showQuestion(currentQuestion);
-  }
-}
-
-function prevQuestion(){
-  if(currentQuestion > 0){
-    currentQuestion--;
-    showQuestion(currentQuestion);
-  }
-}
-
-// Initialize
-showQuestion(currentQuestion);
-</script>
-
+    // Start game on load
+    window.onload = showQuestion;
+  </script>
 </body>
 </html>
